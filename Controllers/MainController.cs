@@ -16,9 +16,15 @@ namespace MangaLibra_Scrape_API.Controllers
         }
 
         [HttpGet(nameof(GetNewestMangaList))]
-		public async Task<List<MangaDataModel>> GetNewestMangaList()
+		public async Task<List<MangaDataModel>> GetNewestMangaList(int pages)
 		{
-			return await _mainService.GetNewestMangaList();
+			return await _mainService.GetNewestMangaList(pages);
+        }
+
+		[HttpGet(nameof(GetMangaById))]
+		public async Task<MangaDataModel> GetMangaById(string id)
+		{
+            return await _mainService.GetMangaByID(id);
         }
 	}
 }
