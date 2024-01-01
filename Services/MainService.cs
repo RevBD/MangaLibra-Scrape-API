@@ -1,43 +1,28 @@
-﻿using MangaLibra_Scrape_API.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
+﻿using HtmlAgilityPack;
+using MangaLibra_Scrape_API.Models;
 using System.Net;
-using System.Xml.Linq;
-using HtmlAgilityPack;
-using System.Diagnostics.Metrics;
-using System.Linq.Expressions;
 
 namespace MangaLibra_Scrape_API.Services
 {
-	public class MainService
+    public class MainService
 	{
-		private readonly IOptions<OptionsModel> _options;
-
-        public MainService(IOptions<OptionsModel> options)
-        {
-            this._options = options;
-        }
-
-        public async Task<List<MangaDataModel>> GetNewestMangaList()
+        public async Task<List<MangaDataModel>> GetNewestMangaList(int pages)
         {
             List<MangaDataModel> result = new List<MangaDataModel>();
-
             using (var client = new WebClient())
             {
                 try
                 {
-                    for (int i = 1; i < 2; i++)
+                    for (int i = 0; i < pages; i++)
                     {
-                        Uri url = new Uri($"https://manganato.com/genre-all/{i}");
-                        string html = client.DownloadString(url);
+                        Uri url = new Uri($"https://manganato.com/genre-all/{i+1}");
+                        string html = await client.DownloadStringTaskAsync(url);
 
                         HtmlDocument doc = new HtmlDocument();
                         doc.LoadHtml(html);
 
-                        List<HtmlNode> MangaNodes = null;
-                        MangaNodes = (from HtmlNode node in doc.DocumentNode.SelectNodes("//div")
+                        List<HtmlNode> MangaNodes = (
+                                      from HtmlNode node in doc.DocumentNode.SelectNodes("//div")
                                       where node.Name == "div"
                                       && node.Attributes["class"] != null
                                       && node.Attributes["class"].Value == "content-genres-item"
@@ -64,6 +49,7 @@ namespace MangaLibra_Scrape_API.Services
                             // ID //
                             try { model.MangaId = model.MangaLink.Split("-")[1]; }
                             catch (Exception ex) { model.MangaLink = "Unknown"; }
+                            model.ChapterList = new List<ChapterDataModel>();
 
                             result.Add(model);
                         }
@@ -73,24 +59,84 @@ namespace MangaLibra_Scrape_API.Services
                 {
                     Console.WriteLine(ex.Message);
                 }
-
             }
-
             return result;
         }
-        
 
+        public async Task<MangaDataModel> GetMangaByID(string id)
+        {
+            using (var client = new WebClient())
+            {
+                try
+                {
+                    Uri url = new Uri($"https://chapmanganato.com/manga-{id}");
+                    string html = await client.DownloadStringTaskAsync(url);
+
+                    HtmlDocument doc = new HtmlDocument();
+                    doc.LoadHtml(html);
+
+                    List<HtmlNode> MangaData = (
+                                      from HtmlNode node in doc.DocumentNode.SelectNodes("//div")
+                                      where node.Name == "div"
+                                      && node.Attributes["class"] != null
+                                      && node.Attributes["class"].Value == "container-main-left"
+                                      select node).ToList();
+
+                    MangaDataModel model = new MangaDataModel();
+                    // Name //
+                    try { model.Name = doc.DocumentNode.SelectSingleNode(".//h1").InnerText; }
+                    catch (Exception ex) { model.Name = "Unknown"; }
+                    // Image //
+                    try { model.ImageLink = doc.DocumentNode.SelectNodes(".//div[@class='panel-story-info']")[0].SelectSingleNode(".//img[@class='img-loading']").Attributes["src"].Value; }
+                    catch (Exception ex) { model.ImageLink = "https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png"; }
+                    // Description //
+                    try { model.Description = doc.DocumentNode.SelectNodes(".//div[@class='panel-story-info']")[0].SelectSingleNode(".//div[@class='panel-story-info-description']").InnerText.ToString().Trim().Replace("&#39;", "'").Replace("Description :", ""); }
+                    catch (Exception ex) { model.Description = "Unknown"; }
+                    // Chapter List //
+                    try
+                    {
+                        List<ChapterDataModel> chapters = new List<ChapterDataModel>();
+                        List<HtmlNode> ChapterNodes = (
+                                        from HtmlNode node in doc.DocumentNode.SelectNodes("//div")
+                                        where node.Name == "div"
+                                        && node.Attributes["class"] != null
+                                        && node.Attributes["class"].Value == "panel-story-chapter-list"
+                                        select node).ToList();
+
+                        List<HtmlNode> ChapterList = (
+                                        from HtmlNode node in ChapterNodes[0].SelectNodes("//li")
+                                        where node.Name == "li"
+                                        select node).ToList();
+
+                        
+                        foreach (HtmlNode Chapter in ChapterList)
+                        {
+                            ChapterDataModel chapterModel = new ChapterDataModel();
+
+                            chapterModel.ChapterName = Chapter.SelectSingleNode(".//a").InnerText;
+                            chapterModel.ChapterLink = Chapter.SelectSingleNode(".//a").Attributes["href"].Value;
+                            chapterModel.ChapterDate = Chapter.SelectSingleNode(".//span[starts-with(@class, 'chapter-time')]").Attributes["title"].Value;
+
+                            chapters.Add(chapterModel);
+                        }
+                        model.ChapterList = chapters;
+                        model.Chapters = "Unknown";
+                        model.MangaLink = "Unknown";
+                        model.MangaId = "Unknown";
+                    }
+                    catch (Exception ex)
+                    {
+                        model.ChapterList = new List<ChapterDataModel>();
+                    }
+
+                    return model;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return null;
+                }
+            }
+        }
     }
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//////////////      Can Save Image File     //////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//using (WebClient webClient = new WebClient())
-//{
-//    string fileName = @$"{ mangaName}" + ".jpg";
-//    Console.WriteLine(fileName);
-//    string localPath = Path.Combine(@"C:\Users\rogalskiw\Desktop\TEST\", fileName);
-//    webClient.DownloadFile(imageURL, localPath);
-//}
