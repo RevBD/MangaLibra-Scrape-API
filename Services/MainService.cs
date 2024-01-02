@@ -90,9 +90,17 @@ namespace MangaLibra_Scrape_API.Services
                     try { model.ImageLink = doc.DocumentNode.SelectNodes(".//div[@class='panel-story-info']")[0].SelectSingleNode(".//img[@class='img-loading']").Attributes["src"].Value; }
                     catch (Exception ex) { model.ImageLink = "https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png"; }
                     // Description //
-                    try { model.Description = doc.DocumentNode.SelectNodes(".//div[@class='panel-story-info']")[0].SelectSingleNode(".//div[@class='panel-story-info-description']").InnerText.ToString().Trim().Replace("&#39;", "'").Replace("Description :", ""); }
+                    try { 
+                        model.Description = doc.DocumentNode.SelectNodes(
+                            ".//div[@class='panel-story-info']")[0]
+                            .SelectSingleNode(".//div[@class='panel-story-info-description']")
+                            .InnerText
+                            .ToString()
+                            .Trim().Replace("&#39;", "'")
+                            .Replace("Description :", "").Trim();
+                    }
                     catch (Exception ex) { model.Description = "Unknown"; }
-                    // Chapter List //
+                    // Chapter List & Chapters//
                     try
                     {
                         List<ChapterDataModel> chapters = new List<ChapterDataModel>();
@@ -120,14 +128,23 @@ namespace MangaLibra_Scrape_API.Services
                             chapters.Add(chapterModel);
                         }
                         model.ChapterList = chapters;
-                        model.Chapters = "Unknown";
-                        model.MangaLink = "Unknown";
-                        model.MangaId = "Unknown";
+                        model.Chapters = chapters.Count.ToString();
+                        model.MangaId = id;
                     }
                     catch (Exception ex)
                     {
                         model.ChapterList = new List<ChapterDataModel>();
                     }
+                    // Link //
+                    try 
+                    {
+                        model.MangaLink = doc.DocumentNode.SelectNodes(
+                            ".//div[@class='panel-breadcrumb']")[0]
+                            .SelectSingleNode($".//a[@title='{model.Name}']")
+                            .Attributes["href"].Value;
+                        
+                    }
+                    catch (Exception ex) { model.MangaLink = "Unknown"; }
 
                     return model;
                 }
