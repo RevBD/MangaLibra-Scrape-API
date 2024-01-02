@@ -33,31 +33,31 @@ namespace MangaLibra_Scrape_API.Services
                             MangaDataModel model = new MangaDataModel();
                             // Name //
                             try { model.Name = Manga.SelectSingleNode(".//img[@class='img-loading']").Attributes["alt"].Value;}
-                            catch (Exception ex) { model.Name = "Unknown"; }
+                            catch { model.Name = "Unknown"; }
                             // Image //
                             try { model.ImageLink = Manga.SelectSingleNode(".//img[@class='img-loading']").Attributes["src"].Value; }
-                            catch (Exception ex) { model.ImageLink = "https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png"; }
+                            catch { model.ImageLink = "https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png"; }
                             // Description //
                             try { model.Description = Manga.SelectSingleNode(".//div[@class='genres-item-description']").InnerText.ToString().Trim().Replace("&#39;", "'"); }
-                            catch (Exception ex) { model.Description = "Unknown"; }
+                            catch { model.Description = "Unknown"; }
                             // Chapters //
                             try { model.Chapters = Manga.SelectSingleNode(".//a[starts-with(@class, 'genres-item-chap')]").InnerText; }
-                            catch (Exception ex) { model.Chapters = "Unknown"; }
+                            catch { model.Chapters = "Unknown"; }
                             // Link //
                             try { model.MangaLink = Manga.SelectSingleNode(".//a[starts-with(@class, 'genres-item-img')]").Attributes["href"].Value; }
-                            catch (Exception ex) { model.MangaLink = "Unknown"; }
+                            catch { model.MangaLink = "Unknown"; }
                             // ID //
                             try { model.MangaId = model.MangaLink.Split("-")[1]; }
-                            catch (Exception ex) { model.MangaLink = "Unknown"; }
+                            catch { model.MangaLink = "Unknown"; }
                             model.ChapterList = new List<ChapterDataModel>();
 
                             result.Add(model);
                         }
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Console.WriteLine(ex.Message);
+                    return new List<MangaDataModel>();
                 }
             }
             return result;
@@ -75,20 +75,13 @@ namespace MangaLibra_Scrape_API.Services
                     HtmlDocument doc = new HtmlDocument();
                     doc.LoadHtml(html);
 
-                    List<HtmlNode> MangaData = (
-                                      from HtmlNode node in doc.DocumentNode.SelectNodes("//div")
-                                      where node.Name == "div"
-                                      && node.Attributes["class"] != null
-                                      && node.Attributes["class"].Value == "container-main-left"
-                                      select node).ToList();
-
                     MangaDataModel model = new MangaDataModel();
                     // Name //
                     try { model.Name = doc.DocumentNode.SelectSingleNode(".//h1").InnerText; }
-                    catch (Exception ex) { model.Name = "Unknown"; }
+                    catch { model.Name = "Unknown"; }
                     // Image //
                     try { model.ImageLink = doc.DocumentNode.SelectNodes(".//div[@class='panel-story-info']")[0].SelectSingleNode(".//img[@class='img-loading']").Attributes["src"].Value; }
-                    catch (Exception ex) { model.ImageLink = "https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png"; }
+                    catch { model.ImageLink = "https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png"; }
                     // Description //
                     try { 
                         model.Description = doc.DocumentNode.SelectNodes(
@@ -99,7 +92,7 @@ namespace MangaLibra_Scrape_API.Services
                             .Trim().Replace("&#39;", "'")
                             .Replace("Description :", "").Trim();
                     }
-                    catch (Exception ex) { model.Description = "Unknown"; }
+                    catch { model.Description = "Unknown"; }
                     // Chapter List & Chapters//
                     try
                     {
@@ -131,7 +124,7 @@ namespace MangaLibra_Scrape_API.Services
                         model.Chapters = chapters.Count.ToString();
                         model.MangaId = id;
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         model.ChapterList = new List<ChapterDataModel>();
                     }
@@ -144,14 +137,13 @@ namespace MangaLibra_Scrape_API.Services
                             .Attributes["href"].Value;
                         
                     }
-                    catch (Exception ex) { model.MangaLink = "Unknown"; }
+                    catch { model.MangaLink = "Unknown"; }
 
                     return model;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Console.WriteLine(ex.Message);
-                    return null;
+                    return new MangaDataModel();
                 }
             }
         }
