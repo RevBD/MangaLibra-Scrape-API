@@ -1,4 +1,3 @@
-using MangaLibra_Scrape_API.Models;
 using MangaLibra_Scrape_API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,7 +9,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<MainService>();
-builder.Services.Configure<OptionsModel>(builder.Configuration.GetSection("SUPER_SECRET_DATA"));
 
 var app = builder.Build();
 

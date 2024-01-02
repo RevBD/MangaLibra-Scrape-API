@@ -1,6 +1,5 @@
 ﻿using MangaLibra_Scrape_API.Models;
 using MangaLibra_Scrape_API.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MangaLibra_Scrape_API.Controllers
