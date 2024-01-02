@@ -97,19 +97,9 @@ namespace MangaLibra_Scrape_API.Services
                     try
                     {
                         List<ChapterDataModel> chapters = new List<ChapterDataModel>();
-                        List<HtmlNode> ChapterNodes = (
-                                        from HtmlNode node in doc.DocumentNode.SelectNodes("//div")
-                                        where node.Name == "div"
-                                        && node.Attributes["class"] != null
-                                        && node.Attributes["class"].Value == "panel-story-chapter-list"
-                                        select node).ToList();
 
-                        List<HtmlNode> ChapterList = (
-                                        from HtmlNode node in ChapterNodes[0].SelectNodes("//li")
-                                        where node.Name == "li"
-                                        select node).ToList();
+                        List<HtmlNode> ChapterList = doc.DocumentNode.SelectNodes(".//div[@class='panel-story-chapter-list']")[0].SelectNodes(".//li").ToList();
 
-                        
                         foreach (HtmlNode Chapter in ChapterList)
                         {
                             ChapterDataModel chapterModel = new ChapterDataModel();
