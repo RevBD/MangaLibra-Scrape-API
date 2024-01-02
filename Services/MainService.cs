@@ -21,12 +21,7 @@ namespace MangaLibra_Scrape_API.Services
                         HtmlDocument doc = new HtmlDocument();
                         doc.LoadHtml(html);
 
-                        List<HtmlNode> MangaNodes = (
-                                      from HtmlNode node in doc.DocumentNode.SelectNodes("//div")
-                                      where node.Name == "div"
-                                      && node.Attributes["class"] != null
-                                      && node.Attributes["class"].Value == "content-genres-item"
-                                      select node).ToList();
+                        List<HtmlNode> MangaNodes = doc.DocumentNode.SelectNodes("//div[@class='content-genres-item']").ToList();
 
                         foreach (HtmlNode Manga in MangaNodes)
                         {
