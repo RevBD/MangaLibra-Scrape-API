@@ -25,5 +25,11 @@ namespace MangaLibra_Scrape_API.Controllers
 		{
             return await _mainService.GetMangaByID(id);
         }
+
+		[HttpGet(nameof(GetChapterPicsByID))]
+		public async Task<List<string>> GetChapterPicsByID(string MangaId, string Chapter)
+		{
+            return await _mainService.GetChapterPicsByID(MangaId , Chapter);
+        }
 	}
 }
