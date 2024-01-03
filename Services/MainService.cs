@@ -132,5 +132,35 @@ namespace MangaLibra_Scrape_API.Services
                 }
             }
         }
+
+        public async Task<List<string>> GetChapterPicsByID(string MangaId, string Chapter)
+        {
+            // Need Referer Header => https://chapmanganato.to/ //
+            using (var client = new WebClient())
+            {
+                try
+                {
+                    Uri url = new Uri($"https://chapmanganato.com/manga-{MangaId}/chapter-{Chapter}");
+                    string html = await client.DownloadStringTaskAsync(url);
+
+                    HtmlDocument doc = new HtmlDocument();
+                    doc.LoadHtml(html);
+
+                    List<string> result = new List<string>();
+
+                    List<HtmlNode> ChapterPics = doc.DocumentNode.SelectNodes(".//div[@class = 'container-chapter-reader']")[0].SelectNodes(".//img").ToList();
+
+                    foreach (HtmlNode Pic in ChapterPics)
+                    {
+                        result.Add(Pic.Attributes["src"].Value);
+                    }
+                    return result;
+                }
+                catch
+                {
+                    return new List<string>();
+                }
+            }
+        }
     }
 }
